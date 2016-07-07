@@ -5,3 +5,7 @@ In this tutorial I will show you how to implement geo targeting functionality on
 For the full tutorial, please visit:
 
 www.appcoda.com/geo-targeting-ios/
+
+Chinese version:
+
+www.appcoda.com.tw/geo-targeting-ios/
