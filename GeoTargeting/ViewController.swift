@@ -15,7 +15,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
 	@IBOutlet weak var mapView: MKMapView!
 
 	let locationManager = CLLocationManager()
-	var monitoredRegions: Dictionary<String, NSDate> = [:]
+	var monitoredRegions: Dictionary<String, Date> = [:]
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -28,32 +28,32 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
 		// setup mapView
 		mapView.delegate = self
 		mapView.showsUserLocation = true
-		mapView.userTrackingMode = .Follow
+		mapView.userTrackingMode = .follow
 
 		// setup test data
 		setupData()
 	}
 
-	override func viewDidAppear(animated: Bool) {
+	override func viewDidAppear(_ animated: Bool) {
 		super.viewDidAppear(animated)
 
 		// status is not determined
-		if CLLocationManager.authorizationStatus() == .NotDetermined {
+		if CLLocationManager.authorizationStatus() == .notDetermined {
 			locationManager.requestAlwaysAuthorization()
 		}
 		// authorization were denied
-		else if CLLocationManager.authorizationStatus() == .Denied {
+		else if CLLocationManager.authorizationStatus() == .denied {
 			showAlert("Location services were previously denied. Please enable location services for this app in Settings.")
 		}
 		// we do have authorization
-		else if CLLocationManager.authorizationStatus() == .AuthorizedAlways {
+		else if CLLocationManager.authorizationStatus() == .authorizedAlways {
 			locationManager.startUpdatingLocation()
 		}
 	}
 
 	func setupData() {
 		// check if can monitor regions
-		if CLLocationManager.isMonitoringAvailableForClass(CLCircularRegion.self) {
+		if CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {
 
 			// region data
 			let title = "Lorrenzillo's"
@@ -63,7 +63,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
 			// setup region
 			let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: coordinate.latitude,
 				longitude: coordinate.longitude), radius: regionRadius, identifier: title)
-			locationManager.startMonitoringForRegion(region)
+			locationManager.startMonitoring(for: region)
 
 			// setup annotation
 			let restaurantAnnotation = MKPointAnnotation()
@@ -72,8 +72,8 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
 			mapView.addAnnotation(restaurantAnnotation)
 
 			// setup circle
-			let circle = MKCircle(centerCoordinate: coordinate, radius: regionRadius)
-			mapView.addOverlay(circle)
+			let circle = MKCircle(center: coordinate, radius: regionRadius)
+			mapView.add(circle)
 		}
 		else {
 			print("System can't track regions")
@@ -82,38 +82,38 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
 
 	// MARK: - MKMapViewDelegate
 
-	func mapView(mapView: MKMapView, rendererForOverlay overlay: MKOverlay) -> MKOverlayRenderer {
+	func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
 		let circleRenderer = MKCircleRenderer(overlay: overlay)
-		circleRenderer.strokeColor = UIColor.redColor()
+		circleRenderer.strokeColor = UIColor.red
 		circleRenderer.lineWidth = 1.0
 		return circleRenderer
 	}
 
 	// MARK: - CLLocationManagerDelegate
 
-	func locationManager(manager: CLLocationManager, didEnterRegion region: CLRegion) {
+	func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
 		showAlert("enter \(region.identifier)")
-		monitoredRegions[region.identifier] = NSDate()
+		monitoredRegions[region.identifier] = Date()
 	}
 
-	func locationManager(manager: CLLocationManager, didExitRegion region: CLRegion) {
+	func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
 		showAlert("exit \(region.identifier)")
-		monitoredRegions.removeValueForKey(region.identifier)
+		monitoredRegions.removeValue(forKey: region.identifier)
 	}
 
-	func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+	func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
 		updateRegionsWithLocation(locations[0])
 	}
 
 	// MARK: - Comples business logic
 
-	func updateRegionsWithLocation(location: CLLocation) {
+	func updateRegionsWithLocation(_ location: CLLocation) {
 
 		let regionMaxVisiting = 10.0
 		var regionsToDelete: [String] = []
 
 		for regionIdentifier in monitoredRegions.keys {
-			if NSDate().timeIntervalSinceDate(monitoredRegions[regionIdentifier]!) > regionMaxVisiting {
+			if Date().timeIntervalSince(monitoredRegions[regionIdentifier]!) > regionMaxVisiting {
 				showAlert("Thanks for visiting our restaurant")
 
 				regionsToDelete.append(regionIdentifier)
@@ -121,18 +121,18 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
 		}
 
 		for regionIdentifier in regionsToDelete {
-			monitoredRegions.removeValueForKey(regionIdentifier)
+			monitoredRegions.removeValue(forKey: regionIdentifier)
 		}
 	}
 
 	// MARK: - Helpers
 
-	func showAlert(title: String) {
-		let alert = UIAlertController(title: title, message: nil, preferredStyle: .Alert)
-		alert.addAction(UIAlertAction(title: "Cancel", style: .Default, handler: { (action) in
-			alert.dismissViewControllerAnimated(true, completion: nil)
+	func showAlert(_ title: String) {
+		let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+		alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: { (action) in
+			alert.dismiss(animated: true, completion: nil)
 		}))
-		self.presentViewController(alert, animated: true, completion: nil)
+		self.present(alert, animated: true, completion: nil)
 
 	}
 }
